@@ -7,11 +7,19 @@
 
 // Public members ------------------------------------------------
 
-pass_manager_engine::pass_manager_engine(const char *file, char(*encrypt)(char), char(*decrypt)(char)) : file_name(file), encryptor(encrypt), decryptor(decrypt) {}
+pass_manager_engine::pass_manager_engine(const char *file, char(*encrypt)(char), char(*decrypt)(char)) : file_name(file), encryptor(encrypt), decryptor(decrypt)
+{
+    // Create the file
+    std::ofstream ofile(file_name, std::ofstream::app | std::ofstream::binary );
+    if(ofile.is_open()) ofile.close();
+    else std::cout << "Cannot create file " << file_name << std::endl;
+}
 
 void pass_manager_engine::store(std::string name, std::string password, std::string user_name, std::string email)
 {
     for(int i = 0; i < name.size(); i++) name[i] = std::tolower(name[i]);
+
+    if(existing_register(name)) return;
 
     encrypt_string(name);
     encrypt_string(password);
@@ -45,7 +53,7 @@ void pass_manager_engine::retrieve(std::string name)
             ++line_position;
 
             decrypt_string(line);
-//std::cout << line << std::endl;
+
             if(line == name)                    // Return the associated password, user_name and email
             {
                 std::cout << line << "\t";
@@ -79,6 +87,8 @@ void pass_manager_engine::retrieve(std::string name)
 void pass_manager_engine::erase(std::string name)
 {
     for(int i = 0; i < name.size(); i++) name[i] = std::tolower(name[i]);
+    std::string encryp_name = name;
+    for(int i = 0; i < encryp_name.size(); i++) encryp_name[i] = encryptor(name[i]);
     int line_position = 0;
 
     // Open a temporary file
@@ -100,7 +110,7 @@ void pass_manager_engine::erase(std::string name)
 
         while(std::getline(ifile, data))
         {
-            if(data == name){
+            if(data == encryp_name){
                 std::getline(ifile, data);
                 std::getline(ifile, data);
                 std::getline(ifile, data);
@@ -116,7 +126,8 @@ void pass_manager_engine::erase(std::string name)
         std::rename("temp_file.bin", file_name.c_str());
         temp_file.close();
 
-        if(!data_founded) std::cout << "Register \"" << name << "\" not founded" << std::endl;
+        if(data_founded) std::cout << "Register \"" << name << "\" deleted" << std::endl;
+        else std::cout << "Register \"" << name << "\" not founded" << std::endl;
     }
     else std::cout << "Cannot open file " << file_name << std::endl;
 }
@@ -154,4 +165,31 @@ void pass_manager_engine::encrypt_string(std::string &str)
 void pass_manager_engine::decrypt_string(std::string &str)
 {
     for(int i = 0; i < str.size(); i++) str[i] = decryptor(str[i]);
+}
+
+int pass_manager_engine::existing_register(std::string str)
+{
+    int line_position = 0;
+    std::string name = str;
+    for(int i = 0; i < str.size(); i++) str[i] = encryptor(std::tolower(str[i]));
+
+    std::ifstream ifile(file_name, std::ifstream::binary);
+    if(ifile.is_open())
+    {
+        std::string line;
+        while(std::getline(ifile, line))
+        {
+            if(line_position % 4) { ++line_position; continue; }
+            ++line_position;
+
+            if(line == str)
+            {
+                std::cout << "Register " << name << " already exists" << std::endl;
+                return 1;
+            }
+        }
+        return 0;
+    }
+    else std::cout << "Cannot open file " << file_name << " for checking registers" << std::endl;
+    return 2;
 }

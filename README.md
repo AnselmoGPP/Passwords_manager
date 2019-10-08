@@ -16,4 +16,4 @@ There are a set of elements in the source code (especifically, in auxiliar.hpp) 
 - Modify the name of the file where the data is stored: Modify the macro FILENAME
 - Change the way each character is encrypted and decrypted: Modify the functions encryptor() (line 9) and decryptor() (line 16)
 
-This program uses a "passwords manager engine" (the class pass_manager_engine) which is in the man_engine.hpp source file. You can use this engine for making your own passwords manager program if you want. Check the testing() function, in auxiliar.hpp, to learn more about this.
+This program uses a "passwords manager engine" (the class pass_manager_engine) which is in the man_engine.hpp source file. You can use this engine for making your own passwords manager program if you want. Check the testing() function, in auxiliar.hpp, to learn how to use it.
