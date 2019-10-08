@@ -40,8 +40,9 @@ void passwords_manager(){
     std::string manager_pass;
     do
     {
-        std::cout << "Enter password: ";
+        std::cout << "Enter password (0 to exit): ";
         std::getline(std::cin, manager_pass);
+        if(manager_pass[0] == '0' && manager_pass.size() == 1) return;
     }
     while(manager_pass != PASS);
 
